@@ -1,92 +1,79 @@
 # TaskFlow
 
-TaskFlow is a simple task manager with a Node/Express + MongoDB backend and a Create React App frontend.
+TaskFlow is a minimal task tracker with an Express + MongoDB backend and a Create React App frontend. It lets you create, toggle, and delete tasks through a REST API that the React UI consumes.
 
-## Project structure
+## Stack
 
-- `backend/` — Express server and API routes
-- `frontend/` — React app (Create React App)
+- Backend: Node 18+, Express 5, Mongoose 9
+- Frontend: React 19 (CRA), axios
+- Database: MongoDB (local or Atlas)
+
+## Project layout
+
+- backend/ — Express server, Mongo connection, task routes
+- frontend/ — React app bootstrapped with Create React App
 
 ## Prerequisites
 
-- Node.js (v16+ recommended)
-- npm (comes with Node.js)
-- MongoDB running locally on `mongodb://127.0.0.1:27017` or Docker
-- (optional) Docker if you prefer running MongoDB in a container
+- Node.js 18+ and npm
+- MongoDB available at `mongodb://127.0.0.1:27017` (local install) or a MongoDB Atlas URI
+- Docker (optional) if you prefer running MongoDB in a container
 
-## Quick start (recommended)
+## Quick start
 
-1. Start MongoDB
+1) Start MongoDB
 
-PowerShell (Windows service):
+PowerShell (installed as Windows service):
 
 ```powershell
-# If MongoDB is installed as a Windows service named 'MongoDB'
 net start MongoDB
 ```
 
-Or with Docker:
+Docker:
 
 ```powershell
 docker run -d -p 27017:27017 --name taskflow-mongo mongo:6.0
 ```
 
-2. Start the backend
+2) Configure the backend
 
 ```powershell
-cd "C:\Users\anees\Desktop\Aneesh\PERSONAL\Projects\TaskFlow\backend"
+cd "C:\Users\anees\Desktop\Aneesh\PERSONAL\Projects\Task-Flow\backend"
 npm install
+copy NUL .env
+echo MONGO_URI=mongodb://127.0.0.1:27017/taskflow >> .env
 node server.js
 ```
 
-The backend listens on port `5000` by default. API base: `http://localhost:5000/api/tasks`.
+The API will be available at http://localhost:5000/api/tasks.
 
-3. Start the frontend
+3) Start the frontend
 
 ```powershell
-cd "C:\Users\anees\Desktop\Anees\PERSONAL\Projects\TaskFlow\frontend"
+cd "C:\Users\anees\Desktop\Aneesh\PERSONAL\Projects\Task-Flow\frontend"
 npm install
 npm start
 ```
 
-The frontend dev server runs on `http://localhost:3000` and proxies API calls to the backend.
+The React dev server runs on http://localhost:3000 and proxies API calls to the backend.
+
+## API reference
+
+- GET /api/tasks — list all tasks
+- POST /api/tasks — create a task (body: `{ "title": "Buy milk" }`)
+- PUT /api/tasks/:id — update completion status (body: `{ "completed": true }`)
+- DELETE /api/tasks/:id — remove a task
+
+Responses are JSON. Errors return `{ "error": "message" }` with an appropriate HTTP status code.
+
+## Development notes
+
+- Environment: only `MONGO_URI` is required by the backend; default port is hardcoded to 5000.
+- CORS: enabled for all origins for simplicity while developing the React app.
+- Data model: `Task` has `title` (string, required) and `completed` (boolean, default false) with created/updated timestamps.
 
 ## Troubleshooting
 
-- Error: `MongooseServerSelectionError: connect ECONNREFUSED 127.0.0.1:27017`
-  - Cause: MongoDB is not running or not reachable.
-  - Fix: Start MongoDB locally (see Quick start) or point `backend/server.js` to a reachable MongoDB URI.
-
-- Error: "'import' and 'export' may appear only with 'sourceType: module'"
-  - Cause: `package.json` contained a `"type": "commonjs"` which forces Node/webpack to treat `.js` as CommonJS and may break Create React App tooling.
-  - Fix: Ensure `frontend/package.json` does not set `type` to `commonjs`. The repo's `frontend/package.json` has been adjusted to remove that field.
-
-- If CRA dev server still fails after changes:
-
-```powershell
-cd "C:\Users\anees\Desktop\Aneesh\PERSONAL\Projects\TaskFlow\frontend"
-rd /s /q node_modules
-npm install
-npm start
-```
-
-## Useful commands
-
-- Test the backend API with curl:
-
-```powershell
-curl.exe -i http://localhost:5000/api/tasks
-```
-
-- Add and commit changes locally:
-
-```powershell
-cd "C:\Users\anees\Desktop\Aneesh\PERSONAL\Projects\TaskFlow"
-git add frontend/package.json backend/routes/tasks.js README.md
-git commit -m "Fix frontend package.json; improve backend error handling; add project README"
-```
-
-## Notes
-
-- I updated `frontend/package.json` to remove a `type` entry that interfered with CRA's module parsing, and added better error handling to `backend/routes/tasks.js` so API failures return useful messages.
-- If you'd like the backend to start even when MongoDB is down (for development), I can add retry logic or a mock fallback — tell me which behavior you prefer.
+- Cannot connect to MongoDB: ensure Mongo is running locally or update `MONGO_URI` in backend/.env to a reachable Atlas URI.
+- CRA dev server errors: if modules look stale, remove `node_modules`, reinstall, and retry `npm start` in frontend/.
+- Backend not restarting on changes: use a watcher like `nodemon` if you want live reload (`npm install -g nodemon` then `nodemon server.js`).
